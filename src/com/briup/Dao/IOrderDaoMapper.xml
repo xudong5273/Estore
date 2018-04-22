@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.briup.Dao.IOrderDao">
+	<resultMap type="com.briup.Bean.Product" id="productModel">
+			<id property="productid" column="productid"/>
+			<result property="name" column="nameb"/>
+			<result property="writer" column="writer"/>
+			<result property="baseprice" column="baseprice"/>
+			<result property="publish" column="publish"/>
+			<result property="pages" column="pages"/>
+			<result property="description" column="description"/>
+			<result property="images" column="images"/>
+			<association property="category" javaType="com.briup.Bean.Category">
+			<id property="categoryid" column="categoryid"/>
+			<result property="name" column="namea"/>
+			<result property="description" column="descriptions"/>
+		</association>
+	</resultMap>
+	<resultMap type="com.briup.Bean.Orderline" id="orderlineModel">
+			<id property="orderid" column="lineid"/>
+			<result property="amount" column="amount"/>
+			<association property="product" resultMap="productModel"></association>
+	</resultMap>
+	<resultMap type="com.briup.Bean.Payway" id="payModel">
+			<id property="paywayid" column="paywayid"/>
+			<result property="paystyle" column="paystyle"/>
+	</resultMap>
+	<resultMap type="com.briup.Bean.OrderStatus" id="statusModel">
+				<id property="statusid" column="statusid"/>
+				<result property="name" column="names"/>
+				<result property="description" column="descriptiond"/>
+	</resultMap>
+	<resultMap type="com.briup.Bean.Order" id="orderModel">
+		<id property="orderid" column="orderid"/>
+		<result property="name" column="name"/>
+		<result property="finished" column="finished"/>
+		<result property="cost" column="cost"/>
+		<result property="cardno" column="cardno"/>
+		<association property="status" resultMap="statusModel"></association>
+		<association property="payway" resultMap="payModel"></association>
+		<collection property="orderlines" resultMap="orderlineModel"></collection>
+	</resultMap>
+	<select id="getAllOrders" parameterType="String" resultMap="orderModel">
+		select 
+		from orders o,payway p,orderstatus s,orderline d,product r,category c
+		where o.paywayid=p.paywayid and o.statusid=s.statusid
+		and o.orderid=d.orderid and d.productid=r.productid
+		and r.categoryid=c.categoryid and o.userid=#{userid}
+	</select>
+	<select id="getAllPayways" resultType="com.briup.Bean.Payway">
+		select paywayid,paystyle
+		from payway
+	</select>
+	<insert id="saveOrder" parameterType="com.briup.Bean.Order">
+		<selectKey keyProperty="orderid"  resultType="int" order="BEFORE">
+			select s_seq.nextval from dual
+		</selectKey>
+		insert into orders(orderid,name,finished,cost,cardno,userid,statusid,paywayid)
+		values(#{orderid},#{name},#{finished},#{cost},#{cardno},#{user.userid},#{status.statusid},#{payway.paywayid})
+	</insert>
+	<insert id="saveOrderLine" parameterType="com.briup.Bean.Orderline">
+		<selectKey keyProperty="orderid"  resultType="int" order="BEFORE">
+			select s_seq.nextval from dual
+		</selectKey>
+		insert into orderline(lineid,orderid,productid,amount)
+		values(#{orderid},#{order.orderid},#{product.productid},#{amount})
+	</insert>
+</mapper>
+
+
+
+
